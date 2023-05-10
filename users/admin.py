@@ -22,13 +22,13 @@ class UserAdmin(auth_admin.UserAdmin):
         (None, {'fields': ('username', 'password')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name', 'email',
                                          "dob", "gender",
-                                         "image", "nationality", "passport_no",)}),
+                                         "image", "nationality", "passport_no", "email_confirmed")}),
         (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser'), #  'groups', 'user_permissions'
         }),
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
-    list_display = ['email', "first_name", "last_name", 'dob', 'gender', "passport_no", "nationality", "is_superuser"]
+    list_display = ['email', "first_name", "last_name", 'dob', 'gender', "passport_no", "nationality", "is_superuser",  'email_confirmed']
     search_fields = ["name", "nationality", "passport_no", "email"]
 
 

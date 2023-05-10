@@ -29,6 +29,7 @@ class User(AbstractUser):
         ("non-binary", "Non-Binary"),
         ("other", "Other")), max_length=20, null=True, blank=True)
     image = models.ImageField(upload_to="profile/", default="default_profile.png", null=True, blank=True)
+    email_confirmed = models.BooleanField(default=False)
     history = HistoricalRecords()
 
     USERNAME_FIELD = 'email'
