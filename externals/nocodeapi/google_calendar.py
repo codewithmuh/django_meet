@@ -6,43 +6,23 @@ from events.utils import request_wrapper, ThirdPartyAPIConnectionError
 NOCODEAPI_GOOGLE_CALENDAR_BASE_URL = "https://v1.nocodeapi.com/codewithmuh/calendar/aOHKvgQRySxOomvS"
 
 
-from django.urls import reverse
-from events.models import Event
-from events.utils import request_wrapper, ThirdPartyAPIConnectionError
-
-
-NOCODEAPI_GOOGLE_CALENDAR_BASE_URL = "https://v1.nocodeapi.com/codewithmuh/calendar/aOHKvgQRySxOomvS"
-
-
 def nocodeapi_google_calendar_create_event(event: Event, user_email: str):
     """Create an event on google calendar using nocodeapi."""
     response_data = None
-    # generate a unique meeting URL
-    meeting_url = reverse('event_detail', args=[event.id])
     # payload to be sent to nocodeapi to create an event
     request_data = {
-        "summary": event.title,
-        "location": event.location,
-        "description": event.description,
-        "start": {"dateTime": event.start_at},
-        "end": {"dateTime": event.end_at},
+        "summary": event['title'],
+        "location": event['location'],
+        "description": event['description'],
+        "start": {"dateTime": event['start_at']},
+        "end": {"dateTime": event['end_at']},
         "locked": True,
         "sendNotifications": True,
         "attendees": [{"email": user_email}],
         "guestsCanInviteOthers": False,
         "guestsCanModify": False,
         "guestsCanSeeOtherGuests": False,
-        "conferenceData": {
-            "createRequest": {"requestId": str(event.id)},
-            "entryPoints": [
-                {
-                    "entryPointType": "video",
-                    "uri": f"https://meet.google.com/{meeting_url}",
-                    "label": "Join now",
-                    "pin": "1234"
-                }
-            ]
-        }
+        "conferenceDataVersion": 1,  # add this line
     }
 
     try:
@@ -55,10 +35,13 @@ def nocodeapi_google_calendar_create_event(event: Event, user_email: str):
         )
         # check if the response is not None, and the status_code is 200'
         if response is not None and response.status_code == 200:
-            # save the meeting URL in the event object
-            event.meeting_url = meeting_url
-            event.save()
-            return response.response_data['id']
+            event_id = response.response_data['id']
+            conference_data = response.response_data.get('conferenceData', {})
+            conference_solution = conference_data.get('conferenceSolution', {})
+            conference_id = conference_solution.get('id')
+            conference_link = conference_data.get('entryPoints', [{}])[0].get('uri')
+            # return a dictionary with the event ID and conference link
+            return {'event_id': event_id, 'conference_id': conference_id, 'conference_link': conference_link}
 
     except ThirdPartyAPIConnectionError as error:
         pass
